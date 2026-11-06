@@ -98,3 +98,27 @@ m3_check:
   segments: [[1000, 1800], [1800, 2600], [2600, 3400]]
   min_tracked_fraction: 0.90  # init needs some motion first, so a few frames are untracked
   max_ate_fraction_of_path: 0.02
+
+# pysteam back-end.
+backend:
+  pixel_sigma_px: 1.0         # isotropic reprojection noise (undistorted pixels)
+  cauchy_k: 1.0               # Cauchy loss on the whitened reprojection error
+  max_iterations: 50
+
+# M4 check: PinholeErrorEvaluator Jacobians + single-pose solve against GT landmarks.
+m4_check:
+  fd_step: 1.0e-6             # central differences
+  fd_rtol: 1.0e-5
+  n_random_trials: 20
+  start_frame: 1000           # M2 map (GT poses) used as "GT landmarks"
+  end_frame: 1300
+  min_track_len: 3
+  perturb_trans_m: 0.05
+  perturb_rot_deg: 2.0
+  n_inits: 3                  # independent perturbations per keyframe must converge together
+  max_init_spread_m: 5.0e-4
+  max_init_spread_deg: 0.01
+  # GT and the GT-triangulated landmarks only agree to ~0.6 px (~0.07 deg), so the solved
+  # pose cannot match GT tighter than that; the solution must fit the data at least as well as GT.
+  max_trans_err_m: 0.01
+  max_rot_err_deg: 0.2
