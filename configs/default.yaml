@@ -104,6 +104,10 @@ backend:
   pixel_sigma_px: 1.0         # isotropic reprojection noise (undistorted pixels)
   cauchy_k: 1.0               # Cauchy loss on the whitened reprojection error
   max_iterations: 50
+  relative_cost_change_threshold: 1.0e-4
+  absolute_cost_change_threshold: 1.0e-4
+  ba:
+    min_track_len: 2          # landmarks with fewer keyframe observations are left out
 
 # M4 check: PinholeErrorEvaluator Jacobians + single-pose solve against GT landmarks.
 m4_check:
@@ -122,3 +126,9 @@ m4_check:
   # pose cannot match GT tighter than that; the solution must fit the data at least as well as GT.
   max_trans_err_m: 0.01
   max_rot_err_deg: 0.2
+
+# M5 check: keyframe BA (no motion prior) must lower the keyframe ATE below VO's.
+m5_check:
+  start_frame: 1000
+  end_frame: 1800
+  max_ate_ratio_vs_vo: 0.8    # BA ATE <= 0.8 x VO ATE on the same keyframes
