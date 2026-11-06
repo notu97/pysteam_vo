@@ -61,3 +61,8 @@ m2_check:
   max_median_reproj_px: 1.0   # over every view of every long track
   max_p90_reproj_px: 2.0
   min_assoc_accept_ratio: 0.9 # descriptor+RANSAC matches to landmarks that pass the gate
+
+plots:
+  clip_percentile: 1.0        # axis limits ignore the outermost landmarks on each side
+  pad_m: 0.5
+  dpi: 150
