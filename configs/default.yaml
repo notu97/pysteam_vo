@@ -19,3 +19,45 @@ m1_check:
   min_parallax_deg: 1.0       # drop near-degenerate triangulations
   min_points: 50              # require at least this many triangulated points per pair
   max_median_reproj_px: 1.0   # M1 pass criterion
+
+# Monocular ORB front-end (pose source agnostic: GT in M2, PnP from M3).
+frontend:
+  orb:
+    detect_nfeatures: 6000    # raw ORB detections before bucketing
+    nfeatures: 1500           # target after grid bucketing
+    grid_rows: 6
+    grid_cols: 8
+    scale_factor: 1.2
+    n_levels: 8
+    edge_threshold: 31        # also used as ORB patch size
+    fast_threshold: 12
+  matching:
+    lowe_ratio: 0.8
+    max_hamming: 64
+    mutual: true
+    ransac_thresh_px: 1.0     # F-matrix RANSAC on undistorted points
+    ransac_confidence: 0.999
+    min_matches: 15           # skip a keyframe pair with fewer descriptor matches
+  keyframes:
+    min_translation_m: 0.10   # motion policy relative to the last keyframe
+    min_rotation_deg: 5.0
+    window: 3                 # match new keyframe against this many previous ones
+  triangulation:
+    min_parallax_deg: 1.0
+    max_reproj_px: 2.0
+    min_depth_m: 0.1
+    max_depth_m: 40.0
+    retriangulate_min_obs: 3  # multi-view DLT refinement once a track has this many views
+  association:
+    max_reproj_px: 3.0        # gate for attaching a matched keypoint to an existing landmark
+
+# M2 check: front-end mapping driven by GT camera poses.
+m2_check:
+  start_frame: 1000
+  end_frame: 1800
+  min_keyframes: 15
+  min_track_len: 3            # "long" track = seen in at least this many keyframes
+  min_long_tracks: 200
+  max_median_reproj_px: 1.0   # over every view of every long track
+  max_p90_reproj_px: 2.0
+  min_assoc_accept_ratio: 0.9 # descriptor+RANSAC matches to landmarks that pass the gate
