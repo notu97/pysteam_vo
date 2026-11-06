@@ -1,0 +1,21 @@
+# Every threshold, noise value and qcd lives here. No magic numbers in code.
+
+data:
+  euroc_root: /home/shiladitya/Dataset/euroc
+  sequence: MH_01_easy
+  camera: cam0
+  # Ground truth is 200 Hz (5 ms). Refuse to interpolate GT across larger gaps.
+  gt_max_gap_ns: 20000000
+
+# M1 sanity check: triangulate ORB matches with GT camera poses and reproject.
+m1_check:
+  anchor_frames: [1000, 1500, 2200, 3000]  # cam0 frames to start pairs from (MH_01 is ~static before ~900)
+  min_baseline_m: 0.20        # second view = first later frame with this GT baseline
+  max_frames_ahead: 60        # give up on an anchor if no frame reaches the baseline
+  orb_nfeatures: 2000
+  lowe_ratio: 0.8
+  ransac_thresh_px: 1.0       # F-matrix RANSAC on undistorted points (GT-independent)
+  ransac_confidence: 0.999
+  min_parallax_deg: 1.0       # drop near-degenerate triangulations
+  min_points: 50              # require at least this many triangulated points per pair
+  max_median_reproj_px: 1.0   # M1 pass criterion
