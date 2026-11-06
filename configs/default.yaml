@@ -50,6 +50,28 @@ frontend:
     retriangulate_min_obs: 3  # multi-view DLT refinement once a track has this many views
   association:
     max_reproj_px: 3.0        # gate for attaching a matched keypoint to an existing landmark
+  # Monocular VO (M3). Map units are arbitrary (scale fixed at init), so the depth limits
+  # in `triangulation` are in map units once VO is running, not metres.
+  vo:
+    init_max_frames: 30       # restart init with a new reference after this many frames
+    init_min_flow_px: 20.0    # median feature displacement before attempting init
+    init_min_points: 100
+    init_min_median_parallax_deg: 1.5
+    init_ransac_thresh_px: 1.0
+    init_ransac_confidence: 0.999
+    init_median_depth: 1.0    # map scale: median init depth in view a
+    local_map_keyframes: 5    # landmarks of the last N keyframes are searched each frame
+    search_radius_px: [15.0, 40.0]   # projection search radii, widened on PnP failure
+    search_max_hamming: 64
+    search_lowe_ratio: 1.0     # 1.0 = off; a ratio test here rejected many good matches (ATE 0.64 -> 0.16 m)
+    pnp_min_inliers: 30
+    pnp_reproj_px: 2.0
+    pnp_ransac_iters: 200
+    pnp_confidence: 0.999
+    kf_min_frame_gap: 2
+    kf_max_frame_gap: 10
+    kf_tracked_ratio: 0.7     # new keyframe when tracked < ratio * landmarks in last keyframe
+    kf_min_tracked: 150
 
 # M2 check: front-end mapping driven by GT camera poses.
 m2_check:
@@ -66,3 +88,13 @@ plots:
   clip_percentile: 1.0        # axis limits ignore the outermost landmarks on each side
   pad_m: 0.5
   dpi: 150
+
+# M3 check: monocular VO (init + PnP), Sim(3)-aligned to GT camera positions.
+# Without BA the ATE is dominated by scale drift and is sensitive to small changes, so the
+# criterion is relative to path length.
+m3_check:
+  start_frame: 1000           # default segment for eval/plot_m3_vo.py
+  end_frame: 1800
+  segments: [[1000, 1800], [1800, 2600], [2600, 3400]]
+  min_tracked_fraction: 0.90  # init needs some motion first, so a few frames are untracked
+  max_ate_fraction_of_path: 0.02
