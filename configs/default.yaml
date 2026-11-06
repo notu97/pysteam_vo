@@ -108,6 +108,14 @@ backend:
   absolute_cost_change_threshold: 1.0e-4
   ba:
     min_track_len: 2          # landmarks with fewer keyframe observations are left out
+  # M6: constant-velocity GP prior (pysteam const_vel). Map units are VO units (~4-6 m each
+  # on MH_01), so qcd is in (map units)^2/s^3 for translation and rad^2/s^3 for rotation.
+  # Order follows pylgmath: (translation, rotation).
+  gp:
+    qcd: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    first_velocity_prior_sigma: 1.0   # weak prior on the first knot velocity
+    use_nonkeyframe_obs: true
+    nonkeyframe_stride: 1             # use every k-th tracked non-keyframe frame
 
 # M4 check: PinholeErrorEvaluator Jacobians + single-pose solve against GT landmarks.
 m4_check:
@@ -132,3 +140,9 @@ m5_check:
   start_frame: 1000
   end_frame: 1800
   max_ate_ratio_vs_vo: 0.8    # BA ATE <= 0.8 x VO ATE on the same keyframes
+
+# M6 check: STEAP (GP prior + non-keyframe observations), initialized from VO.
+m6_check:
+  start_frame: 2600
+  end_frame: 3400
+  max_ate_ratio_vs_vo: 0.6    # STEAP ATE <= 0.6 x VO ATE (keyframes and all tracked frames)

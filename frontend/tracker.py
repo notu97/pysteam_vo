@@ -383,6 +383,25 @@ class MonoVO:
             return np.zeros(0, np.int64), np.zeros((0, 4, 4))
         return np.array([i for i, _ in items], np.int64), np.stack([T for _, T in items])
 
+    def nonkeyframe_observations(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """PnP-inlier observations of tracked frames that are not keyframes.
+
+        Returns (t_ns (M,) int64, lm_id (M,), uv (M, 2) undistorted px). Keyframe
+        observations are already in the map and are not repeated here.
+        """
+        t, lm, uv = [], [], []
+        kf_frames = {kf.frame_idx for kf in self.map.keyframes.values()}
+        for i in sorted(self.frames):
+            r = self.frames[i]
+            if r.T_cw is None or r.is_keyframe or i in kf_frames or len(r.lm_ids) == 0:
+                continue
+            t.append(np.full(len(r.lm_ids), r.t_ns, dtype=np.int64))
+            lm.append(r.lm_ids)
+            uv.append(r.uv)
+        if not t:
+            return np.zeros(0, np.int64), np.zeros(0, np.int64), np.zeros((0, 2))
+        return np.concatenate(t), np.concatenate(lm).astype(np.int64), np.concatenate(uv)
+
     # ---------------------------------------------------------------- init
 
     def _initialize(self, frame_idx: int, t_ns: int, feats: Features) -> FrameResult:
