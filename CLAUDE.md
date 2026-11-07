@@ -155,9 +155,11 @@ Stereo (current):
    tracks (>= 3 KFs, multi-view re-triangulated) reproject median 0.49 / p90 0.95 px; 5-run
    VO: ATE SE(3) 0.588 +- 0.117 m vs S2 0.626 +- 0.166 (within spread), 10 s RPE 0.072 vs
    0.080 m. Drift direction is the same in every run (systematic component).
-4. S4 Stereo factor: pysteam `StereoErrorEvaluator` composed with `ComposeLandmarkEvaluator`.
-   Check: Jacobians match finite differences; single-pose solve against GT-posed landmarks
-   fits at least as well as GT (Cauchy cost).
+4. S4 Stereo factor (done; `backend/stereo_error.py`): `RectStereoErrorEvaluator` uses pysteam's
+   stereo `camera_model` / `camera_model_jac` but only rows (u_L, v_L, u_R): v_R duplicates v_L
+   on a rectified pair, so pysteam's 4-row `StereoErrorEvaluator` would double-count it.
+   Checks: equals `StereoRig.project`; Jacobians match finite differences (rtol 1e-5); EuRoC
+   single-pose solves converge from 3 inits, Cauchy cost <= GT's, 2-7 mm / <0.08 deg from GT.
 5. S5 Stereo BA (no GP prior), initialised from S3 VO. Check: keyframe ATE (SE(3)) below S3.
 6. S6 Stereo STEAP: GP prior + non-keyframe stereo observations, initialised from VO (never
    from BA); re-tune `qcd` in metric units on one segment only. Check: all-frame ATE below

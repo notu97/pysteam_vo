@@ -240,3 +240,19 @@ s3_check:
   max_p90_reproj_px: 2.5
   n_runs: 5                   # (b) VO: 5-run means must beat S2 (same metric on results/s2 runs)
   rpe_window_s: 10.0
+
+# S4 check: RectStereoErrorEvaluator (criteria mirror M4).
+s4_check:
+  fd_step: 1.0e-6
+  fd_rtol: 1.0e-5
+  n_random_trials: 20
+  gt_segment: [1000, 1300]    # GT-pose stereo map; landmarks re-triangulated from all views
+  min_track_kf: 3
+  min_landmarks: 50           # per tested keyframe
+  perturb_trans_m: 0.05
+  perturb_rot_deg: 2.0
+  n_inits: 3
+  max_init_spread_m: 5.0e-4
+  max_init_spread_deg: 0.01
+  max_trans_err_m: 0.01       # vs GT (GT noise floor, as M4)
+  max_rot_err_deg: 0.2
