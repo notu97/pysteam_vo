@@ -170,3 +170,35 @@ m8:
   vo_overrides:
     init_min_median_parallax_deg: 3.0
     init_min_points: 150
+
+# Stereo pipeline (S1-S7): rectified cam0/cam1 pairs. Units are metres (metric scale).
+stereo:
+  row_tol_px: 2.0             # |v_L - v_R| allowed, times scale_factor**octave
+  min_disparity_px: 1.0
+  min_depth_m: 0.3            # sets the maximum disparity searched
+  max_depth_m: 40.0           # stereo points beyond this are discarded by users of matches
+  max_hamming: 60
+  lowe_ratio: 0.9             # best vs second-best candidate on the row
+
+# S1 check: rectification and stereo geometry on GT poses.
+s1_check:
+  rect_anchor_frames: [1000, 1500, 2200, 3000]   # rectification (row) check
+  rect_lowe_ratio: 0.8        # unconstrained left/right matching
+  rect_max_hamming: 50
+  min_rect_matches: 200
+  max_median_row_err_px: 1.0  # |v_L - v_R| median over unconstrained matches
+  # Metric scale: stereo depth vs depth triangulated from two GT-posed views >= gt_baseline_m
+  # apart (~5 stereo baselines). Pooled over many anchors; single pairs have too few points.
+  scale_anchor_start: 1000
+  scale_anchor_end: 3500
+  scale_anchor_step: 150
+  gt_baseline_m: 0.5
+  min_parallax_deg: 3.0
+  max_stereo_depth_m: 15.0
+  min_scale_points: 300
+  max_scale_error: 0.02       # |pooled median(stereo / GT depth) - 1|
+  # Reprojection of stereo points into a later GT-posed frame: dominated by GT noise
+  # (~1.1 px even when correct; wrong R0 / 3% scale give the same), so only a gross-error check.
+  reproj_min_baseline_m: 0.20
+  max_frames_ahead: 60
+  max_median_reproj_px_gross: 2.0

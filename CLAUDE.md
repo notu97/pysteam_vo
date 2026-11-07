@@ -139,10 +139,13 @@ Monocular baseline (done):
    deferred; they may return later for stereo loop closure.
 
 Stereo (current):
-1. S1 Stereo rig + loader: rectification, rectified K / baseline, `T_B_rect`, GT
-   rectified-left poses. Check: matched left/right features have |v_L - v_R| < 1 px (median);
-   points triangulated from one rectified pair reproject under 1 px into a second GT-posed
-   frame.
+1. S1 Stereo rig + loader (done): rectification, rectified K / baseline, `T_B_rect`, GT
+   rectified-left poses. Checks: raw OpenCV cam0/cam1 projections rectified (precise inverse,
+   `cv2.undistortPointsIter`) equal our `(u_L, v, u_R)` model to 1e-3 px; unconstrained L/R
+   matches |v_L - v_R| median < 1 px; pooled median stereo depth / GT two-view depth within
+   1 +- 0.02 (got 0.993). Reprojecting stereo points into a later GT-posed frame is only a
+   gross-error check (< 2 px): GT noise gives ~1.1 px even when correct, and wrong R0 or a 3%
+   scale error score the same.
 2. S2 Stereo VO port of `Orb-feat-python/vo_euroc.py`, outputting `T_rect,w` and flagging
    frames where tracking failed (no silent motion-model poses). Check: over 5 runs, ATE
    (SE(3)) and RPE match the reference script's within run-to-run spread (reference:
