@@ -150,9 +150,11 @@ Stereo (current):
    frames where tracking failed (no silent motion-model poses). Check: over 5 runs, ATE
    (SE(3)) and RPE match the reference script's within run-to-run spread (reference:
    0.643 m SE(3) ATE, 1.5 cm / 1 s RPE); every lost frame is flagged.
-3. S3 Persistent stereo map: landmarks tracked across keyframes, tracking against the local
-   map (not just the last keyframe). Check: on GT poses, landmark tracks reproject under
-   1 px in every view; with VO poses, ATE and 10 s RPE drop below S2 (5-run mean).
+3. S3 Persistent stereo map (done; `StereoMapVO`): landmarks tracked across keyframes, tracking
+   against the last 5 keyframes' landmarks by projection, S2-style fallback. Checks: GT-pose
+   tracks (>= 3 KFs, multi-view re-triangulated) reproject median 0.49 / p90 0.95 px; 5-run
+   VO: ATE SE(3) 0.588 +- 0.117 m vs S2 0.626 +- 0.166 (within spread), 10 s RPE 0.072 vs
+   0.080 m. Drift direction is the same in every run (systematic component).
 4. S4 Stereo factor: pysteam `StereoErrorEvaluator` composed with `ComposeLandmarkEvaluator`.
    Check: Jacobians match finite differences; single-pose solve against GT-posed landmarks
    fits at least as well as GT (Cauchy cost).

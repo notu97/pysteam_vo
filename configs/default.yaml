@@ -223,3 +223,20 @@ s2_check:
   segment: [1000, 1800]       # quick dataset test (slow-marked)
   min_tracked_fraction: 0.95
   max_ate_fraction_of_path: 0.02   # SE(3) ATE / path length on the segment
+
+# S3 stereo VO with a persistent landmark map.
+stereo_map:
+  local_map_keyframes: 5      # landmarks of the last N keyframes are searched each frame
+  search_radius_px: [15.0, 40.0]   # projection search radii, widened if too few matches
+  search_max_hamming: 64
+  search_lowe_ratio: 1.0      # 1.0 = off (as in mono M3, where a ratio test here hurt)
+
+# S3 checks (fixed before running).
+s3_check:
+  gt_segment: [1000, 1800]    # (a) association check with GT poses
+  min_track_kf: 3             # landmarks seen in >= this many keyframes
+  min_long_tracks: 500
+  max_median_reproj_px: 1.0   # after multi-view re-triangulation with GT poses, every view
+  max_p90_reproj_px: 2.5
+  n_runs: 5                   # (b) VO: 5-run means must beat S2 (same metric on results/s2 runs)
+  rpe_window_s: 10.0

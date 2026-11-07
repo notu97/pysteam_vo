@@ -27,3 +27,16 @@ def ate_sim3(p_est: np.ndarray, p_gt: np.ndarray) -> dict:
     err = np.linalg.norm(aligned - p_gt, axis=1)
     return {"scale": s, "R": R, "t": t, "aligned": aligned, "err": err,
             "rmse": float(np.sqrt(np.mean(err ** 2))), "median": float(np.median(err)), "max": float(err.max())}
+
+
+def rpe_translation(T_wc_est: np.ndarray, T_wc_gt: np.ndarray, step: int) -> np.ndarray:
+    """Alignment-free relative translation error over windows of `step` consecutive poses
+    (window starts every step/10 poses, so windows overlap). Returns per-window errors in the
+    units of the poses (metres for stereo)."""
+    errs = []
+    stride = max(1, step // 10)
+    for i in range(0, len(T_wc_est) - step, stride):
+        A = np.linalg.inv(T_wc_est[i]) @ T_wc_est[i + step]
+        B = np.linalg.inv(T_wc_gt[i]) @ T_wc_gt[i + step]
+        errs.append(np.linalg.norm((np.linalg.inv(B) @ A)[:3, 3]))
+    return np.array(errs)

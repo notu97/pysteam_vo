@@ -21,6 +21,7 @@ class Keyframe:
     T_cw: np.ndarray        # (4, 4)
     feats: Features
     lm_ids: np.ndarray      # (N,) landmark id per keypoint, -1 if none
+    uR: np.ndarray | None = None   # (N,) stereo right-image u per keypoint, NaN if none (stereo only)
 
     @property
     def center_w(self) -> np.ndarray:
@@ -50,6 +51,7 @@ class MapArrays:
     obs_kf: np.ndarray        # (M,) index into kf arrays
     obs_lm: np.ndarray        # (M,) index into lm arrays
     obs_uv: np.ndarray        # (M, 2) undistorted pixel coords
+    obs_uR: np.ndarray | None = None   # (M,) stereo right u (rectified px), NaN for mono observations
 
 
 class Map:
@@ -103,12 +105,14 @@ class Map:
         kfs = list(self.keyframes.values())
         lms = list(self.landmarks.values())
         kf_index = {kf.id: i for i, kf in enumerate(kfs)}
-        obs_kf, obs_lm, obs_uv = [], [], []
+        obs_kf, obs_lm, obs_uv, obs_uR = [], [], [], []
         for j, lm in enumerate(lms):
             for kf_id, kp in lm.obs.items():
+                kf = self.keyframes[kf_id]
                 obs_kf.append(kf_index[kf_id])
                 obs_lm.append(j)
-                obs_uv.append(self.keyframes[kf_id].feats.kps[kp])
+                obs_uv.append(kf.feats.kps[kp])
+                obs_uR.append(np.nan if kf.uR is None else kf.uR[kp])
         return MapArrays(
             kf_ids=np.array([kf.id for kf in kfs], dtype=np.int64),
             kf_frame_idx=np.array([kf.frame_idx for kf in kfs], dtype=np.int64),
@@ -119,4 +123,5 @@ class Map:
             obs_kf=np.array(obs_kf, dtype=np.int64),
             obs_lm=np.array(obs_lm, dtype=np.int64),
             obs_uv=np.array(obs_uv, dtype=np.float64).reshape(-1, 2),
+            obs_uR=np.array(obs_uR, dtype=np.float64),
         )
