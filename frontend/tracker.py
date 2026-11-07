@@ -15,7 +15,7 @@ from scipy.spatial.transform import Rotation
 
 from pysteam_vo.data.euroc import CameraCalib
 from pysteam_vo.frontend.map import Keyframe, Map
-from pysteam_vo.frontend.orb import Features, OrbExtractor, fundamental_inliers, match_descriptors
+from pysteam_vo.frontend.orb import Features, fundamental_inliers, make_extractor, match_descriptors
 
 
 # ------------------------------------------------------------------ geometry helpers
@@ -84,7 +84,7 @@ class Tracker:
         self.calib = calib
         self.K = calib.K
         self.map = Map()
-        self.extractor = OrbExtractor(cfg["orb"], calib)
+        self.extractor = make_extractor(cfg["orb"], calib)
         self.c_match = cfg["matching"]
         self.c_kf = cfg["keyframes"]
         self.c_tri = cfg["triangulation"]

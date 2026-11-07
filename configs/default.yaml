@@ -23,14 +23,18 @@ m1_check:
 # Monocular ORB front-end (pose source agnostic: GT in M2, PnP from M3).
 frontend:
   orb:
-    detect_nfeatures: 6000    # raw ORB detections before bucketing
+    backend: orbslam3         # "cv2" (OpenCV ORB + grid bucketing) or "orbslam3" (python_orb_slam3)
+    detect_nfeatures: 6000    # [cv2] raw ORB detections before bucketing
     nfeatures: 1500           # target after grid bucketing
     grid_rows: 6
     grid_cols: 8
     scale_factor: 1.2
     n_levels: 8
     edge_threshold: 31        # also used as ORB patch size
-    fast_threshold: 12
+    fast_threshold: 12        # [cv2]
+    orbslam3:                 # ORB-SLAM3 extractor (EuRoC defaults from ORB-SLAM3's configs)
+      ini_th_fast: 20         # initial FAST threshold per cell
+      min_th_fast: 7          # fallback FAST threshold for low-texture cells
   matching:
     lowe_ratio: 0.8
     max_hamming: 64

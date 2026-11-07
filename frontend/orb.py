@@ -84,6 +84,52 @@ class OrbExtractor:
         )
 
 
+class OrbSlam3Extractor:
+    """ORB-SLAM3's own ORB extractor (via the `python_orb_slam3` binding).
+
+    Uses ORB-SLAM3's per-level FAST thresholds and quadtree keypoint distribution, so no
+    grid bucketing is needed. Its descriptors are the ones ORBvoc.txt was trained on.
+    Keypoint coordinates are returned in full-resolution (level-0) pixels.
+    """
+
+    def __init__(self, cfg: dict, calib: CameraCalib):
+        from python_orb_slam3 import ORBExtractor   # GPL-3.0, optional dependency
+
+        self.calib = calib
+        o = cfg["orbslam3"]
+        self._orb = ORBExtractor(
+            n_features=int(cfg["nfeatures"]),
+            scale_factor=float(cfg["scale_factor"]),
+            n_levels=int(cfg["n_levels"]),
+            ini_th_fast=int(o["ini_th_fast"]),
+            min_th_fast=int(o["min_th_fast"]),
+        )
+
+    def extract(self, img: np.ndarray) -> Features:
+        kps, desc = self._orb.detectAndCompute(img)
+        if desc is None or len(kps) == 0:
+            z = np.zeros((0, 2))
+            return Features(z, z.copy(), np.zeros((0, 32), np.uint8), np.zeros(0, np.int64), np.zeros(0))
+        pts = np.array([k.pt for k in kps], dtype=np.float64)
+        return Features(
+            kps_dist=pts,
+            kps=self.calib.undistort_points(pts),
+            desc=np.ascontiguousarray(desc, dtype=np.uint8),
+            octave=np.array([k.octave for k in kps], dtype=np.int64),
+            response=np.array([k.response for k in kps], dtype=np.float64),
+        )
+
+
+def make_extractor(cfg: dict, calib: CameraCalib) -> OrbExtractor | OrbSlam3Extractor:
+    """Feature extractor selected by `cfg["backend"]` ("cv2" or "orbslam3")."""
+    backend = cfg.get("backend", "cv2")
+    if backend == "cv2":
+        return OrbExtractor(cfg, calib)
+    if backend == "orbslam3":
+        return OrbSlam3Extractor(cfg, calib)
+    raise ValueError(f"unknown ORB backend {backend!r}")
+
+
 def match_descriptors(
     desc_a: np.ndarray, desc_b: np.ndarray, lowe_ratio: float, max_hamming: int, mutual: bool
 ) -> np.ndarray:

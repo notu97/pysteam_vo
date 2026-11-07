@@ -148,7 +148,8 @@ def test_m4_single_pose_euroc():
     """M4: perturb GT keyframe poses and solve against their M2 (GT-triangulated) landmarks.
 
     Checks the solver, not GT: independent initializations converge to one pose, that pose
-    fits the observations at least as well as GT, and it lies within GT's noise floor.
+    has a Cauchy cost no higher than GT's (the quantity the solver minimises; the median
+    reprojection error is printed but not asserted), and it lies within GT's noise floor.
     """
     from pysteam_vo.eval.plot_m2_map import build_gt_map
     from pysteam_vo.frontend.tracker import project
@@ -170,13 +171,17 @@ def test_m4_single_pose_euroc():
         spread_deg = max(_rot_err_deg(e[:3, :3], T_est[:3, :3]) for e in ests)
         dt = float(np.linalg.norm(invert_se3(T_est)[:3, 3] - invert_se3(T_gt)[:3, 3]))
         dr = _rot_err_deg(T_est[:3, :3], T_gt[:3, :3])
-        med = lambda T: float(np.median(np.linalg.norm(project(K, T, p_w)[0] - uv, axis=1)))
+        res = lambda T: np.linalg.norm(project(K, T, p_w)[0] - uv, axis=1)
+        med = lambda T: float(np.median(res(T)))
+        k, sig = BE["cauchy_k"], BE["pixel_sigma_px"]
+        cauchy = lambda T: float(np.sum(0.5 * k * k * np.log1p((res(T) / sig / k) ** 2)))   # what the solver minimises
         r_gt, r_est = med(T_gt), med(T_est)
+        c_gt, c_est = cauchy(T_gt), cauchy(T_est)
         print(f"[M4] frame {kf.frame_idx}: {len(p_w)} landmarks  vs GT |dt| {1e3 * dt:.2f} mm "
               f"|dR| {dr:.4f} deg  init spread {1e3 * spread_m:.3f} mm {spread_deg:.1e} deg  "
-              f"median reproj GT {r_gt:.3f} px -> solved {r_est:.3f} px")
+              f"median reproj GT {r_gt:.3f} px -> solved {r_est:.3f} px  Cauchy cost GT {c_gt:.2f} -> solved {c_est:.2f}")
         assert spread_m < M4["max_init_spread_m"] and spread_deg < M4["max_init_spread_deg"]
-        assert r_est <= r_gt
+        assert c_est <= c_gt          # the solution fits the data at least as well as GT, in the solver's own cost
         assert dt < M4["max_trans_err_m"] and dr < M4["max_rot_err_deg"]
         n_checked += 1
     assert n_checked >= 3
