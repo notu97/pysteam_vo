@@ -156,3 +156,13 @@ m7_check:
   max_median_trans_m: 0.01    # GP interp vs solved, local (relative to preceding knot), metres via Sim3 scale
   max_median_rot_deg: 0.5
   # and GP interpolation must beat linear SE(3) interpolation between the same knots
+
+# M8: full-sequence export + comparison with VGGT-Omega (relative to the pysteam_vo repo root).
+m8:
+  vggt_dir: ../../out_mh01_s5_c60_o20_r512_undist
+  match_tol_ns: 1000000       # VGGT stamps were written via float seconds; snap to cam0 within 1 ms
+  # Full-sequence VO: stricter initialization (low-parallax inits produced maps that degraded
+  # and lost track mid-flight). M8 only; M3-M7 keep the frontend.vo defaults.
+  vo_overrides:
+    init_min_median_parallax_deg: 3.0
+    init_min_points: 150
