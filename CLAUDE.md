@@ -160,12 +160,18 @@ Stereo (current):
    on a rectified pair, so pysteam's 4-row `StereoErrorEvaluator` would double-count it.
    Checks: equals `StereoRig.project`; Jacobians match finite differences (rtol 1e-5); EuRoC
    single-pose solves converge from 3 inits, Cauchy cost <= GT's, 2-7 mm / <0.08 deg from GT.
-5. S5 Stereo BA (no GP prior), initialised from S3 VO. Check: keyframe ATE (SE(3)) below S3.
-6. S6 Stereo STEAP: GP prior + non-keyframe stereo observations, initialised from VO (never
-   from BA); re-tune `qcd` in metric units on one segment only. Check: all-frame ATE below
-   VO; M7-style hold-out interpolation check.
-7. S7 Export + evo: SE(3) and Sim(3) ATE/RPE vs GT, the reference stereo VO, monocular
-   STEAP and VGGT-Omega, on identical timestamps.
+5. S5 Stereo BA (done; `backend/stereo_problem.py`, `eval/run_s5_stereo_ba.py`), initialised from
+   S3 VO (`results/s3/map_run.npz`). Single-keyframe landmarks omitted (no pose information);
+   stereo factor where a right match exists, pinhole otherwise; only the first pose locked.
+   Map run 1: keyframe ATE SE(3) 0.654 -> 0.490 m (-25%), Sim3 scale 1.003, 70 s.
+6. S6 Stereo STEAP: GP prior + non-keyframe observations, initialised from VO (never from BA);
+   re-tune `qcd` in metric units on one segment only. Check: all-frame ATE below VO; M7-style
+   hold-out interpolation check.
+   S5 and S6 are independent results compared against each other: both start from the SAME
+   S3 VO map (same run), keyframe ATE compared like for like, S6 also all-frame ATE. Repeat
+   over several VO maps (non-deterministic VO) and report mean +- std.
+7. S7 Export + evo: SE(3) and Sim(3) ATE/RPE vs GT for VO, S5 BA and S6 STEAP on identical
+   timestamps. VGGT-Omega comparison is deferred (not part of the current plan).
 
 ## Testing
 
