@@ -146,3 +146,13 @@ m6_check:
   start_frame: 2600
   end_frame: 3400
   max_ate_ratio_vs_vo: 0.6    # STEAP ATE <= 0.6 x VO ATE (keyframes and all tracked frames)
+
+# M7 check: GP-interpolated poses vs solved poses on held-out keyframes.
+# Criteria fixed before running (from M6 diagnostics: ~4 mm / ~0.14 deg between knots).
+m7_check:
+  start_frame: 2600
+  end_frame: 3400
+  holdout_every: 3            # every 3rd keyframe (not first/last) removed as a knot
+  max_median_trans_m: 0.01    # GP interp vs solved, local (relative to preceding knot), metres via Sim3 scale
+  max_median_rot_deg: 0.5
+  # and GP interpolation must beat linear SE(3) interpolation between the same knots

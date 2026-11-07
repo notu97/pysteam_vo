@@ -152,16 +152,25 @@ def build_steap_problem(
     nonkf: tuple[np.ndarray, np.ndarray, np.ndarray],
     K: np.ndarray,
     cfg: dict,
+    landmark_rows: np.ndarray | None = None,
+    anchor_row: int | None = None,
 ) -> SteapProblem:
     """`arr`: VO keyframe map (initial values). `nonkf`: (t_ns, lm_id, uv) non-keyframe observations.
 
-    `cfg` is the `backend` config section (uses `ba` and `gp`).
+    `cfg` is the `backend` config section (uses `ba` and `gp`). `landmark_rows` / `anchor_row`
+    force the landmark set and scale anchor (rows of `arr.lm_*`), so two problems built from
+    different keyframe subsets share the same landmarks and gauge (used by M7).
     """
     ints = PinholeIntrinsics.from_K(K)
     gp = cfg["gp"]
     track_len = np.bincount(arr.obs_lm, minlength=len(arr.lm_ids))
-    usable = track_len >= cfg["ba"]["min_track_len"]
-    anchor = select_scale_anchor(arr, track_len, usable)
+    if landmark_rows is None:
+        usable = track_len >= cfg["ba"]["min_track_len"]
+    else:
+        usable = np.zeros(len(arr.lm_ids), dtype=bool)
+        usable[np.asarray(landmark_rows)] = True
+    anchor = select_scale_anchor(arr, track_len, usable) if anchor_row is None else int(anchor_row)
+    assert usable[anchor], "scale anchor must be one of the landmarks"
 
     # knots: initial poses straight from VO, velocities by finite differences of those poses
     w0 = init_velocities_from_poses(arr.T_cw, arr.kf_t_ns)

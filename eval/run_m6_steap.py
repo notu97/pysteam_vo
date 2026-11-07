@@ -88,8 +88,10 @@ def main() -> None:
     ap.add_argument("--end", type=int, default=m6["end_frame"])
     ap.add_argument("--no-ba", action="store_true")
     ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--out", type=Path, default=Path(__file__).resolve().parents[1] / "results" / "m6_steap_topdown.png")
+    ap.add_argument("--out", type=Path, default=None)
     args = ap.parse_args()
+    if args.out is None:
+        args.out = Path(__file__).resolve().parents[1] / "results" / f"m6_steap_{args.start}_{args.end}.png"
 
     seq = EurocSequence.from_config(cfg)
     r = run_m6(seq, cfg, args.start, args.end, with_ba=not args.no_ba, verbose=args.verbose)
