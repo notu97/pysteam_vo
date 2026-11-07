@@ -202,3 +202,24 @@ s1_check:
   reproj_min_baseline_m: 0.20
   max_frames_ahead: 60
   max_median_reproj_px_gross: 2.0
+
+# S2 stereo VO (port of Orb-feat-python/vo_euroc.py; same defaults as its argparse).
+stereo_vo:
+  lowe_ratio: 0.8             # frame-to-keyframe descriptor matching
+  max_hamming: 64
+  min_matches: 10
+  pnp_ransac_iters: 200
+  pnp_reproj_px: 2.0
+  pnp_confidence: 0.999
+  min_inliers: 15             # fewer PnP inliers -> frame flagged as not tracked
+  kf_min_inliers: 120         # new keyframe if inliers drop below this
+  kf_trans_m: 0.3             # ... or the camera moved this far from the keyframe
+  kf_rot_deg: 10.0            # ... or rotated this much
+
+# S2 check / evaluation.
+s2_check:
+  n_runs: 5                   # extractor is non-deterministic: report mean +- std
+  reference_tum: ../../Orb-feat-python/vo_MH_01_easy.txt   # body-frame output of vo_euroc.py
+  segment: [1000, 1800]       # quick dataset test (slow-marked)
+  min_tracked_fraction: 0.95
+  max_ate_fraction_of_path: 0.02   # SE(3) ATE / path length on the segment
