@@ -167,6 +167,11 @@ Stereo (current):
 6. S6 Stereo STEAP: GP prior + non-keyframe observations, initialised from VO (never from BA);
    re-tune `qcd` in metric units on one segment only. Check: all-frame ATE below VO; M7-style
    hold-out interpolation check.
+   Done on map run 2 (`results/s3/map_run.npz`, `eval/run_s6_stereo_steap.py`): one qcd = 0.003
+   for the whole trajectory (tuned on frames 2600-3400: 0.001 -> 0.028, 0.003 -> 0.013,
+   0.01 -> 0.016, >= 0.1 -> ~0.021 m); non-keyframe obs every 3rd frame. Keyframe ATE SE(3):
+   VO 0.573, BA 0.316, STEAP 0.289 m; all-frame STEAP 0.293 m. STEAP solve 647 s. Single map
+   so far; the STEAP-vs-BA margin needs more maps.
    S5 and S6 are independent results compared against each other: both start from the SAME
    S3 VO map (same run), keyframe ATE compared like for like, S6 also all-frame ATE. Repeat
    over several VO maps (non-deterministic VO) and report mean +- std.

@@ -344,3 +344,21 @@ class StereoMapVO:
         return (np.array([f.frame_idx for f in self.frames], np.int64),
                 np.stack([f.T_rw for f in self.frames]) if self.frames else np.zeros((0, 4, 4)),
                 np.array([f.tracked for f in self.frames], bool))
+
+    def nonkeyframe_observations(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """PnP-inlier observations of tracked non-keyframe frames: (t_ns (M,), lm_id (M,), uv (M,2)).
+
+        Left image only (the right image is not processed for non-keyframes), so these are
+        monocular observations in rectified pixels.
+        """
+        t, lm, uv = [], [], []
+        kf_frames = {kf.frame_idx for kf in self.map.keyframes.values()}
+        for r in self.frames:
+            if not r.tracked or r.is_keyframe or r.frame_idx in kf_frames or len(r.lm_ids) == 0:
+                continue
+            t.append(np.full(len(r.lm_ids), r.t_ns, np.int64))
+            lm.append(r.lm_ids)
+            uv.append(r.uv)
+        if not t:
+            return np.zeros(0, np.int64), np.zeros(0, np.int64), np.zeros((0, 2))
+        return np.concatenate(t), np.concatenate(lm).astype(np.int64), np.concatenate(uv)

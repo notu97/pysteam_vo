@@ -32,9 +32,13 @@ from pysteam_vo.frontend.map import MapArrays
 def load_map(npz: Path, seq: StereoSequence) -> tuple[MapArrays, dict]:
     d = np.load(npz)
     kf_f = d["kf_frame_idx"]
-    arr = MapArrays(np.arange(len(kf_f)), kf_f, seq.image_ts_ns[kf_f], d["kf_T_rw"], np.arange(len(d["lm_p_w"])),
+    lm_ids = d["lm_ids"] if "lm_ids" in d else np.arange(len(d["lm_p_w"]))
+    arr = MapArrays(np.arange(len(kf_f)), kf_f, seq.image_ts_ns[kf_f], d["kf_T_rw"], lm_ids,
                     d["lm_p_w"], d["obs_kf"], d["obs_lm"], d["obs_uv"], d["obs_uR"])
-    return arr, {"frame_idx": d["frame_idx"], "T_rw": d["T_rw"], "tracked": d["tracked"]}
+    extra = {"frame_idx": d["frame_idx"], "T_rw": d["T_rw"], "tracked": d["tracked"]}
+    if "nonkf_t_ns" in d:
+        extra["nonkf"] = (d["nonkf_t_ns"], d["nonkf_lm_id"], d["nonkf_uv"])
+    return arr, extra
 
 
 def main() -> None:

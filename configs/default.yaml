@@ -114,6 +114,15 @@ backend:
     min_track_len: 2          # landmarks with fewer keyframe observations are left out
   stereo_ba:
     min_track_kf: 2           # single-keyframe landmarks carry no pose information (3 dof vs <= 3 meas.)
+  # S6 stereo STEAP (metric units). qcd order (translation, rotation): m^2/s^3 and rad^2/s^3.
+  # Tuned on s6_check.qcd_segment only.
+  stereo_steap:
+    # Tuned on frames 2600-3400 of the S3 map (keyframe ATE SE3, VO 0.032 m): qcd 0.001 -> 0.028,
+    # 0.003 -> 0.013, 0.01 -> 0.016, 0.1 -> 0.020, 1 and 10 -> 0.021 m.
+    qcd: [0.003, 0.003, 0.003, 0.003, 0.003, 0.003]
+    first_velocity_prior_sigma: 1.0
+    use_nonkeyframe_obs: true
+    nonkeyframe_stride: 3     # every k-th tracked non-keyframe frame (1.08M obs at stride 1)
   # M6: constant-velocity GP prior (pysteam const_vel). Map units are VO units (~4-6 m each
   # on MH_01), so qcd is in (map units)^2/s^3 for translation and rad^2/s^3 for rotation.
   # Order follows pylgmath: (translation, rotation).
@@ -258,3 +267,8 @@ s4_check:
   max_init_spread_deg: 0.01
   max_trans_err_m: 0.01       # vs GT (GT noise floor, as M4)
   max_rot_err_deg: 0.2
+
+# S6 check: stereo STEAP vs S5 BA on the SAME VO map.
+s6_check:
+  qcd_segment: [2600, 3400]   # qcd tuned here only
+  qcd_candidates: [0.001, 0.003, 0.01, 0.1, 1.0, 10.0]

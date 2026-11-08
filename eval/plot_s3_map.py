@@ -47,9 +47,10 @@ def main() -> None:
             vo.process(i, int(seq.image_ts_ns[i]), l, r)
         f, T_rw, tracked = vo.trajectory()
         a = vo.map.to_arrays()
+        nk_t, nk_lm, nk_uv = vo.nonkeyframe_observations()
         np.savez_compressed(npz, frame_idx=f, T_rw=T_rw, tracked=tracked, kf_frame_idx=a.kf_frame_idx,
-                            kf_T_rw=a.T_cw, lm_p_w=a.p_w, obs_kf=a.obs_kf, obs_lm=a.obs_lm, obs_uv=a.obs_uv,
-                            obs_uR=a.obs_uR)
+                            kf_T_rw=a.T_cw, lm_ids=a.lm_ids, lm_p_w=a.p_w, obs_kf=a.obs_kf, obs_lm=a.obs_lm,
+                            obs_uv=a.obs_uv, obs_uR=a.obs_uR, nonkf_t_ns=nk_t, nonkf_lm_id=nk_lm, nonkf_uv=nk_uv)
     d = np.load(npz)
     f, T_rw, tracked = d["frame_idx"], d["T_rw"], d["tracked"]
     p_w, kf_T = d["lm_p_w"], d["kf_T_rw"]
